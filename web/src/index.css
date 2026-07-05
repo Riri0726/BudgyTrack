@@ -1,0 +1,160 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Default Theme: Azure Deep (Blue), Light Mode */
+:root,
+[data-theme="blue"][data-mode="light"] {
+  --color-primary: #007aff;
+  --color-secondary: #10b981;
+  --color-accent: #8b5cf6;
+  --color-danger: #ef4444;
+
+  --color-background: #fafafc;
+  --color-surface: #f1f3f7;
+  --color-card: #ffffff;
+  --color-text-primary: #0f131a;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+  
+  --font-sans: 'Inter', sans-serif;
+}
+
+/* Azure Deep - Dark Mode */
+[data-theme="blue"][data-mode="dark"],
+:root[data-mode="dark"] {
+  --color-primary: #3b82f6;
+  --color-background: #0b0e14;
+  --color-surface: #121620;
+  --color-card: #1c2230;
+  --color-text-primary: #f8fafc;
+  --color-text-muted: #94a3b8;
+  --color-border: #283144;
+}
+
+/* Crimson Core - Light Mode */
+[data-theme="red"][data-mode="light"] {
+  --color-primary: #dc2626;
+  --color-secondary: #10b981;
+  --color-accent: #f59e0b;
+  --color-danger: #ef4444;
+
+  --color-background: #faf9f9;
+  --color-surface: #f3f1f1;
+  --color-card: #ffffff;
+  --color-text-primary: #1c1919;
+  --color-text-muted: #78716c;
+  --color-border: #e7e5e4;
+}
+
+/* Crimson Core - Dark Mode */
+[data-theme="red"][data-mode="dark"] {
+  --color-primary: #ef4444;
+  --color-secondary: #10b981;
+  --color-accent: #f59e0b;
+  --color-danger: #ef4444;
+
+  --color-background: #151212;
+  --color-surface: #1c1919;
+  --color-card: #282424;
+  --color-text-primary: #faf9f9;
+  --color-text-muted: #a8a29e;
+  --color-border: #383333;
+}
+
+/* Amethyst Flow - Light Mode */
+[data-theme="purple"][data-mode="light"] {
+  --color-primary: #7c3aed;
+  --color-secondary: #10b981;
+  --color-accent: #f59e0b;
+  --color-danger: #ef4444;
+
+  --color-background: #fbfaff;
+  --color-surface: #f3f0fa;
+  --color-card: #ffffff;
+  --color-text-primary: #1e1b4b;
+  --color-text-muted: #6b21a8;
+  --color-border: #e9e3f5;
+}
+
+/* Amethyst Flow - Dark Mode */
+[data-theme="purple"][data-mode="dark"] {
+  --color-primary: #a78bfa;
+  --color-secondary: #10b981;
+  --color-accent: #f59e0b;
+  --color-danger: #ef4444;
+
+  --color-background: #0d0b14;
+  --color-surface: #151221;
+  --color-card: #201b33;
+  --color-text-primary: #f5f3ff;
+  --color-text-muted: #c084fc;
+  --color-border: #2e264f;
+}
+
+/* Galaxy - Light Mode */
+[data-theme="galaxy"][data-mode="light"] {
+  --color-primary: #db2777;
+  --color-secondary: #10b981;
+  --color-accent: #f59e0b;
+  --color-danger: #ef4444;
+
+  --color-background: #fafafc;
+  --color-surface: #f0edf5;
+  --color-card: #ffffff;
+  --color-text-primary: #0f172a;
+  --color-text-muted: #9d174d;
+  --color-border: #e8e3f0;
+}
+
+/* Galaxy - Dark Mode */
+[data-theme="galaxy"][data-mode="dark"] {
+  --color-primary: #f472b6;
+  --color-secondary: #10b981;
+  --color-accent: #f59e0b;
+  --color-danger: #ef4444;
+
+  --color-background: #05050d;
+  --color-surface: #0e0b1c;
+  --color-card: #191433;
+  --color-text-primary: #fdf2f8;
+  --color-text-muted: #f472b6;
+  --color-border: #2e2054;
+}
+
+@theme {
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+  --color-danger: var(--color-danger);
+  
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-card: var(--color-card);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-muted: var(--color-text-muted);
+  --color-border: var(--color-border);
+  
+  --font-sans: var(--font-sans);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+}
+
+@layer utilities {
+  /* Replaced blur glass effects with clean flat card layouts matching theme definitions */
+  .glass {
+    background-color: var(--color-card);
+    border: 1.5px solid var(--color-border);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  }
+}

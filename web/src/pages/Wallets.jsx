@@ -13,6 +13,7 @@ export default function Wallets() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState('');
   const [type, setType] = useState('cash');
+  const [initialBalance, setInitialBalance] = useState('');
 
   // Selected wallet view
   const [selectedWalletId, setSelectedWalletId] = useState('all');
@@ -65,16 +66,39 @@ export default function Wallets() {
         .insert([{
           name,
           type,
+          balance: parseFloat(initialBalance || 0),
           user_id: user.id
         }])
         .select();
 
       if (error) throw error;
-      if (data) {
-        setWallets([...wallets, data[0]]);
+      if (data && data.length > 0) {
+        const newWallet = data[0];
+        setWallets([...wallets, newWallet]);
+        
+        const amount = parseFloat(initialBalance || 0);
+        if (amount > 0) {
+          let { data: cats } = await supabase.from('categories').select('id').eq('user_id', user.id).eq('type', 'income').limit(1);
+          if (cats && cats.length > 0) {
+            await supabase.from('transactions').insert([{
+              user_id: user.id,
+              title: 'Starting Balance',
+              amount: amount,
+              type: 'income',
+              status: 'confirmed',
+              account_id: newWallet.id,
+              category_id: cats[0].id,
+              date: new Date().toISOString().split('T')[0]
+            }]);
+          }
+        }
+
         setIsModalOpen(false);
         setName('');
         setType('cash');
+        setInitialBalance('');
+        
+        fetchWalletData();
       }
     } catch (err) {
       alert(err.message);
@@ -305,19 +329,33 @@ export default function Wallets() {
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block mb-2">Account Type</label>
-                <select 
-                  className="w-full bg-surface border border-border rounded-xl py-2.5 px-4 text-text-primary focus:outline-none focus:border-primary/50 text-sm [&>option]:bg-card"
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                >
-                  <option value="cash">Cash / Physical</option>
-                  <option value="bank">Bank Account</option>
-                  <option value="ewallet">E-Wallet (GCash, Maya)</option>
-                  <option value="card">Credit Card</option>
-                  <option value="other">Other</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block mb-2">Account Type</label>
+                  <select 
+                    className="w-full bg-surface border border-border rounded-xl py-2.5 px-4 text-text-primary focus:outline-none focus:border-primary/50 text-sm [&>option]:bg-card h-11"
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                  >
+                    <option value="cash">Cash / Physical</option>
+                    <option value="bank">Bank Account</option>
+                    <option value="ewallet">E-Wallet (GCash, Maya)</option>
+                    <option value="card">Credit Card</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block mb-2">Current Budget (₱)</label>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    className="w-full bg-surface border border-border rounded-xl py-2.5 px-4 text-text-primary focus:outline-none focus:border-primary/50 text-sm h-11"
+                    value={initialBalance}
+                    onChange={(e) => setInitialBalance(e.target.value)}
+                  />
+                </div>
               </div>
 
               <button 

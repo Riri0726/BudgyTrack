@@ -5,7 +5,7 @@ import { Landmark, ArrowRight, WalletCards } from 'lucide-react';
 
 export default function Onboarding() {
   const { user, completeOnboarding } = useAuth();
-  const [walletName, setWalletName] = useState('My Cash');
+  const [walletName, setWalletName] = useState('');
   const [walletType, setWalletType] = useState('cash');
   const [initialBalance, setInitialBalance] = useState('');
   const [loading, setLoading] = useState(false);

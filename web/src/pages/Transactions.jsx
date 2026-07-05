@@ -47,18 +47,8 @@ export default function Transactions() {
         .eq('user_id', user.id);
       if (accErr) throw accErr;
       
-      if (!fetchedAccounts || fetchedAccounts.length === 0) {
-        const { data: newAccounts } = await supabase
-          .from('accounts')
-          .insert([
-            { user_id: user.id, name: 'Cash Pocket', type: 'cash', balance: 1000.00 },
-            { user_id: user.id, name: 'Bank Wallet', type: 'bank', balance: 15000.00 }
-          ])
-          .select();
-        fetchedAccounts = newAccounts || [];
-      }
-      setAccounts(fetchedAccounts);
-      if (fetchedAccounts.length > 0) setAccountId(fetchedAccounts[0].id);
+      setAccounts(fetchedAccounts || []);
+      if (fetchedAccounts && fetchedAccounts.length > 0) setAccountId(fetchedAccounts[0].id);
 
       // 2. Fetch Categories
       let { data: fetchedCategories, error: catErr } = await supabase
@@ -67,20 +57,8 @@ export default function Transactions() {
         .eq('user_id', user.id);
       if (catErr) throw catErr;
 
-      if (!fetchedCategories || fetchedCategories.length === 0) {
-        const { data: newCats } = await supabase
-          .from('categories')
-          .insert([
-            { user_id: user.id, name: 'Food', type: 'expense', budget: 5000.00 },
-            { user_id: user.id, name: 'Rent', type: 'expense', budget: 12000.00 },
-            { user_id: user.id, name: 'Salary', type: 'income', budget: 0.00 },
-            { user_id: user.id, name: 'Investments', type: 'income', budget: 0.00 }
-          ])
-          .select();
-        fetchedCategories = newCats || [];
-      }
-      setCategories(fetchedCategories);
-      const defaultCat = fetchedCategories.find(c => c.type === 'expense');
+      setCategories(fetchedCategories || []);
+      const defaultCat = (fetchedCategories || []).find(c => c.type === 'expense');
       if (defaultCat) setCategoryId(defaultCat.id);
 
       // 3. Fetch Transactions

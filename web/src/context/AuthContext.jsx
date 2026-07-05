@@ -7,9 +7,11 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasOnboarded, setHasOnboarded] = useState(null);
 
   const ensureUserProfile = async (userId, email) => {
     try {
+      // 1. Profile Check
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
@@ -27,8 +29,22 @@ export function AuthProvider({ children }) {
           }]);
         if (insErr) console.error('Error auto-creating user profile:', insErr.message);
       }
+
+      // 2. Onboarding Check (Does user have at least 1 wallet?)
+      const { data: accounts, error: accErr } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+        
+      if (!accErr && accounts) {
+        setHasOnboarded(accounts.length > 0);
+      } else {
+        setHasOnboarded(false);
+      }
     } catch (err) {
       console.error('Error verifying user profile:', err.message);
+      setHasOnboarded(true); // Failsafe
     }
   };
 
@@ -38,9 +54,10 @@ export function AuthProvider({ children }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        ensureUserProfile(session.user.id, session.user.email);
+        ensureUserProfile(session.user.id, session.user.email).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     // Listen for state updates (sign in/out)
@@ -48,9 +65,11 @@ export function AuthProvider({ children }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        ensureUserProfile(session.user.id, session.user.email);
+        setLoading(true);
+        ensureUserProfile(session.user.id, session.user.email).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -70,9 +89,11 @@ export function AuthProvider({ children }) {
   };
 
   const signOut = () => supabase.auth.signOut();
+  
+  const completeOnboarding = () => setHasOnboarded(true);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, hasOnboarded, completeOnboarding, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

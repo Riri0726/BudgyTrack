@@ -9,6 +9,7 @@ import Income from './pages/Income';
 import Budget from './pages/Budget';
 import Settings from './pages/Settings';
 import Wallets from './pages/Wallets';
+import Onboarding from './pages/Onboarding';
 
 function Sidebar() {
   const location = useLocation();
@@ -65,7 +66,7 @@ function Sidebar() {
 }
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, hasOnboarded } = useAuth();
 
   if (loading) {
     return (
@@ -77,6 +78,10 @@ function App() {
 
   if (!user) {
     return <Login />;
+  }
+
+  if (hasOnboarded === false) {
+    return <Onboarding />;
   }
 
   return (

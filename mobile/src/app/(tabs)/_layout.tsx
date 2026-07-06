@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { CreditCard, Home, PieChart } from 'lucide-react-native';
+import { Home, CreditCard, FolderHeart, SlidersHorizontal, Settings } from 'lucide-react-native';
 
 export default function TabsLayout() {
   return (
@@ -27,10 +27,24 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="onboarding"
+        name="wallets"
         options={{
-          title: 'Location Setup',
-          tabBarIcon: ({ color, size }) => <PieChart size={size} color={color} />,
+          title: 'Wallets',
+          tabBarIcon: ({ color, size }) => <FolderHeart size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="budget"
+        options={{
+          title: 'Budget',
+          tabBarIcon: ({ color, size }) => <SlidersHorizontal size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
         }}
       />
     </Tabs>

@@ -88,7 +88,7 @@ export async function startLocationTracking(homeLat: number, homeLon: number) {
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.Balanced,
       timeInterval: 60000,
-      distanceInterval: 100,
+      distanceInterval: 20,
       showsBackgroundLocationIndicator: false,
     });
   }

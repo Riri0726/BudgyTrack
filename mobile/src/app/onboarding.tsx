@@ -30,7 +30,7 @@ export default function Onboarding() {
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       const lat = loc.coords.latitude;
       const lng = loc.coords.longitude;
-      const defaultRadius = 1000;
+      const defaultRadius = 50;
 
       // 3. Save to Supabase
       const { error } = await supabase.from('profiles').update({

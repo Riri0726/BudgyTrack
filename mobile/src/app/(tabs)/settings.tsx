@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Switch } from 'react-native';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { User, MapPin, Plus, Trash2, Tag, Palette, Sun, Moon } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme, ThemeType } from '../../context/ThemeContext';
@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { startLocationTracking } from '../../lib/locationTask';
+import { WebView } from 'react-native-webview';
 
 export default function Settings() {
   const { user, signOut } = useAuth();
@@ -26,10 +27,11 @@ export default function Settings() {
   const [radiusEnabled, setRadiusEnabled] = useState(false);
   const [homeLat, setHomeLat] = useState<number | null>(null);
   const [homeLng, setHomeLng] = useState<number | null>(null);
-  const [radiusMeters, setRadiusMeters] = useState(1000);
+  const [radiusMeters, setRadiusMeters] = useState(50); // Set 50m as initial default
   const [locationLoading, setLocationLoading] = useState(false);
 
   const [loading, setLoading] = useState(true);
+  const webViewRef = useRef<any>(null);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -42,7 +44,7 @@ export default function Settings() {
         if (data.home_lat && data.home_lng) {
           setHomeLat(data.home_lat);
           setHomeLng(data.home_lng);
-          setRadiusMeters(data.home_radius_meters || 1000);
+          setRadiusMeters(data.home_radius_meters || 50);
           setRadiusEnabled(true);
         }
       }
@@ -70,6 +72,23 @@ export default function Settings() {
       fetchCategories();
     }
   }, [user, fetchProfile, fetchCategories]);
+
+  // Inject Leaflet updates smoothly to WebView map instead of full reloads
+  useEffect(() => {
+    if (webViewRef.current && homeLat && homeLng) {
+      const js = `
+        if (typeof marker !== 'undefined' && typeof circle !== 'undefined' && typeof map !== 'undefined') {
+          var pos = [${homeLat}, ${homeLng}];
+          marker.setLatLng(pos);
+          circle.setLatLng(pos);
+          circle.setRadius(${radiusMeters});
+          map.setView(pos, map.getZoom());
+        }
+        true;
+      `;
+      webViewRef.current.injectJavaScript(js);
+    }
+  }, [homeLat, homeLng, radiusMeters]);
 
   const handleUpdateProfile = async () => {
     setProfileLoading(true);
@@ -160,6 +179,9 @@ export default function Settings() {
     try {
       await supabase.from('profiles').update({ home_radius_meters: newRadius }).eq('id', user?.id);
       await AsyncStorage.setItem('home_radius', newRadius.toString());
+      if (radiusEnabled && homeLat && homeLng) {
+        await startLocationTracking(homeLat, homeLng);
+      }
     } catch (err: any) {
       console.error(err.message);
     }
@@ -191,6 +213,28 @@ export default function Settings() {
     }
   };
 
+  // Handle updates dragged/clicked on map
+  const onMapMessage = async (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.lat && data.lng) {
+        setHomeLat(data.lat);
+        setHomeLng(data.lng);
+        // Save to Supabase
+        await supabase.from('profiles').update({ home_lat: data.lat, home_lng: data.lng }).eq('id', user?.id);
+        // Cache locally for background task
+        await AsyncStorage.setItem('home_lat', data.lat.toString());
+        await AsyncStorage.setItem('home_lng', data.lng.toString());
+        // Re-start tracking if enabled
+        if (radiusEnabled) {
+          await startLocationTracking(data.lat, data.lng);
+        }
+      }
+    } catch (err: any) {
+      console.error('Error handling map updates:', err.message);
+    }
+  };
+
   const themesList = [
     { id: 'red', name: 'Crimson Core', color: '#ef4444' },
     { id: 'blue', name: 'Azure Deep', color: '#3b82f6' },
@@ -198,7 +242,59 @@ export default function Settings() {
     { id: 'galaxy', name: 'Galaxy Space', color: '#f472b6' },
   ];
 
-  const radiusOptions = [500, 1000, 1500, 2000, 3000, 5000];
+  // Available radius options starting from 50m
+  const radiusOptions = [50, 100, 250, 500, 1000, 2000, 5000];
+
+  const getMapHtml = (lat: number, lng: number, radius: number, primaryColor: string) => `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+      <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+      <style>
+        body, html, #map { margin: 0; padding: 0; height: 100%; width: 100%; background: #121620; }
+        .leaflet-control-attribution { display: none; }
+      </style>
+    </head>
+    <body>
+      <div id="map"></div>
+      <script>
+        var map = L.map('map', { zoomControl: false }).setView([${lat}, ${lng}], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19
+        }).addTo(map);
+
+        var marker = L.marker([${lat}, ${lng}], { draggable: true }).addTo(map);
+        var circle = L.circle([${lat}, ${lng}], {
+          color: '${primaryColor}',
+          fillColor: '${primaryColor}',
+          fillOpacity: 0.2,
+          radius: ${radius}
+        }).addTo(map);
+
+        function updateApp(newLat, newLng) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ lat: newLat, lng: newLng }));
+        }
+
+        marker.on('dragend', function(e) {
+          var position = marker.getLatLng();
+          circle.setLatLng(position);
+          map.panTo(position);
+          updateApp(position.lat, position.lng);
+        });
+
+        map.on('click', function(e) {
+          var position = e.latlng;
+          marker.setLatLng(position);
+          circle.setLatLng(position);
+          map.panTo(position);
+          updateApp(position.lat, position.lng);
+        });
+      </script>
+    </body>
+    </html>
+  `;
 
   if (loading) {
     return (
@@ -313,12 +409,28 @@ export default function Settings() {
           />
         </View>
 
+        {/* Visual Map Selector */}
+        {homeLat && homeLng ? (
+          <View style={{ borderColor: colors.border }} className="w-full h-56 rounded-xl overflow-hidden border mb-4">
+            <WebView
+              ref={webViewRef}
+              source={{ html: getMapHtml(homeLat, homeLng, radiusMeters, colors.primary) }}
+              onMessage={onMapMessage}
+              style={{ flex: 1 }}
+              javaScriptEnabled
+              domStorageEnabled
+            />
+          </View>
+        ) : null}
+
         {/* Home location status */}
         <View style={{ backgroundColor: colors.surface, borderColor: colors.border }} className="rounded-xl p-4 border mb-4">
           {homeLat && homeLng ? (
             <View>
-              <Text style={{ color: colors.primary }} className="text-xs font-bold uppercase mb-1">📍 Home Pinned</Text>
-              <Text style={{ color: colors.textMuted }} className="text-xs">{homeLat.toFixed(6)}, {homeLng.toFixed(6)}</Text>
+              <Text style={{ color: colors.primary }} className="text-xs font-bold uppercase mb-1">📍 Pinned Coordinate</Text>
+              <Text style={{ color: colors.textMuted }} className="text-xs">
+                {homeLat.toFixed(6)}, {homeLng.toFixed(6)} (Tap or drag map marker to adjust)
+              </Text>
             </View>
           ) : (
             <Text className="text-amber-500 text-xs font-semibold">No home location set. Pin your current location below.</Text>
@@ -333,7 +445,7 @@ export default function Settings() {
           }}
           className="p-3.5 rounded-xl items-center mb-4 border">
           <Text style={{ color: colors.primary }} className="font-bold text-sm">
-            {locationLoading ? 'Getting GPS...' : homeLat ? '📍 Re-pin Home Location' : '📍 Pin Current Location as Home'}
+            {locationLoading ? 'Getting GPS...' : homeLat ? '📍 Reset to Current GPS Location' : '📍 Pin Current Location as Home'}
           </Text>
         </TouchableOpacity>
 

@@ -14,7 +14,7 @@ CREATE TABLE profiles (
   last_name TEXT,
   home_lat DOUBLE PRECISION,
   home_lng DOUBLE PRECISION,
-  home_radius_meters INTEGER DEFAULT 1000,
+  home_radius_meters INTEGER DEFAULT 50,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

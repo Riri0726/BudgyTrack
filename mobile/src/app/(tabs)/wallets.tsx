@@ -196,17 +196,17 @@ export default function Wallets() {
             <Text style={{ color: colors.textMuted }} className="text-center py-6">No transactions found.</Text>
           ) : (
             filteredTxs.map(tx => (
-              <View key={tx.id} style={{ borderBottomColor: colors.border + '50' }} className="flex-row items-center justify-between py-3 border-b">
+              <View key={tx.id} style={{ backgroundColor: colors.surface, borderColor: colors.border }} className="flex-row items-center justify-between p-4 rounded-xl border mb-3 shadow-sm">
                 <View className="flex-row items-center flex-1 pr-4">
-                  <View style={{ backgroundColor: tx.type === 'income' ? '#10b98115' : colors.surface }} className="p-2.5 rounded-lg mr-3">
-                    {tx.type === 'income' ? <ArrowUpRight color="#10b981" size={14} /> : <ArrowDownRight color={colors.textMuted} size={14} />}
+                  <View style={{ backgroundColor: tx.type === 'income' ? '#10b98115' : colors.card }} className="p-2.5 rounded-xl mr-3">
+                    {tx.type === 'income' ? <ArrowUpRight color="#10b981" size={16} /> : <ArrowDownRight color={colors.textMuted} size={16} />}
                   </View>
                   <View className="flex-1">
-                    <Text style={{ color: colors.text }} className="font-semibold text-sm" numberOfLines={1}>{tx.title}</Text>
-                    <Text style={{ color: colors.textMuted }} className="text-xs mt-0.5">{tx.categories?.name} • {tx.date}</Text>
+                    <Text style={{ color: colors.text }} className="font-bold text-sm" numberOfLines={1}>{tx.title}</Text>
+                    <Text style={{ color: colors.textMuted }} className="text-[10px] mt-1">{tx.categories?.name} • {tx.date}</Text>
                   </View>
                 </View>
-                <Text className={`font-bold ${tx.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                <Text className={`font-bold text-sm ${tx.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
                   {tx.type === 'income' ? '+' : '-'}₱{parseFloat(tx.amount).toFixed(2)}
                 </Text>
               </View>

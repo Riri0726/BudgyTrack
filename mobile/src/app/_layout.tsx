@@ -4,6 +4,7 @@ import { ThemeProvider } from '../context/ThemeContext';
 import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import '../global.css';
 import { startLocationTracking } from '../lib/locationTask';
 
 function RootLayoutNav() {

@@ -402,20 +402,22 @@ export default function Settings() {
         </View>
 
         {/* Category list */}
-        {categories.map(cat => (
-          <View key={cat.id} style={{ borderBottomColor: colors.border + '50' }} className="flex-row items-center justify-between py-3 border-b">
-            <View className="flex-row items-center flex-1">
-              <View className={`w-2.5 h-2.5 rounded-full mr-3 ${cat.type === 'expense' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
-              <View>
-                <Text style={{ color: colors.text }} className="font-semibold text-sm">{cat.name}</Text>
-                <Text style={{ color: colors.textMuted }} className="text-[10px] uppercase font-bold mt-0.5">{cat.type}</Text>
+        <View className="mt-2">
+          {categories.map(cat => (
+            <View key={cat.id} style={{ backgroundColor: colors.surface, borderColor: colors.border }} className="flex-row items-center justify-between p-3.5 rounded-xl border mb-2 shadow-sm">
+              <View className="flex-row items-center flex-1">
+                <View className={`w-2.5 h-2.5 rounded-full mr-3 ${cat.type === 'expense' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                <View>
+                  <Text style={{ color: colors.text }} className="font-bold text-sm">{cat.name}</Text>
+                  <Text style={{ color: colors.textMuted }} className="text-[9px] uppercase font-extrabold mt-0.5 tracking-wider">{cat.type}</Text>
+                </View>
               </View>
+              <TouchableOpacity onPress={() => handleDeleteCategory(cat.id, cat.name)} className="p-1.5">
+                <Trash2 color="#ef4444" size={16} />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={() => handleDeleteCategory(cat.id, cat.name)} className="p-2">
-              <Trash2 color={colors.textMuted} size={16} />
-            </TouchableOpacity>
-          </View>
-        ))}
+          ))}
+        </View>
       </View>
 
       {/* Sign Out */}

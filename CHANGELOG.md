@@ -5,10 +5,16 @@ All notable changes to the BudgyTrack project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.0] - 2026-07-06
 
 ### Added
-- Geofencing and background tracking task logic initialized for the React Native Mobile App.
+- **Mobile Application Launch**: Fully featured Expo React Native mobile application mirroring the web features.
+- **Supabase Mobile Auth**: Integrated login, sign-up, and persistent session state with `AsyncStorage`.
+- **Dynamic Mobile Screens**: Ported all core pages to mobile including **Dashboard**, **Transactions**, **Wallets**, **Budget**, and **Settings**.
+- **Radius Notificator**: Location-based background notifications powered by `expo-location` and `expo-task-manager` that alert users to log expenses when leaving their home radius.
+- **Customizable Geofencing**: Option in Settings to toggle background tracking, pin the home area using GPS, and select a custom radius from 500m to 5km.
+- **Web UI Responsiveness**: Redesigned layout in `App.jsx` with a slide-out hamburger navigation sidebar drawer to make the web app fully optimized for mobile browsers.
+- **Automated APK Builds**: GitHub Actions workflow to compile the mobile app and build installable `.apk` assets on version tag releases.
 
 ## [1.1.0] - Unified Wallets Refactor
 

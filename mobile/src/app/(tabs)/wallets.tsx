@@ -2,10 +2,13 @@ import { View, Text, TouchableOpacity, Modal, TextInput, ScrollView, ActivityInd
 import { useState, useEffect, useCallback } from 'react';
 import { ArrowDownRight, ArrowUpRight, Plus, X, Landmark, Wallet, Smartphone } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 
 export default function Wallets() {
   const { user } = useAuth();
+  const { colors } = useTheme();
+
   const [wallets, setWallets] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,26 +118,30 @@ export default function Wallets() {
   const filteredTxs = transactions.filter(tx => selectedWalletId === 'all' || tx.account_id === selectedWalletId);
 
   const getIcon = (t: string) => {
-    if (t === 'bank') return <Landmark color="#94a3b8" size={16} />;
-    if (t === 'ewallet') return <Smartphone color="#94a3b8" size={16} />;
-    return <Wallet color="#94a3b8" size={16} />;
+    if (t === 'bank') return <Landmark color={colors.textMuted} size={16} />;
+    if (t === 'ewallet') return <Smartphone color={colors.textMuted} size={16} />;
+    return <Wallet color={colors.textMuted} size={16} />;
   };
 
   if (loading) {
-    return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' }}><ActivityIndicator size="large" color="#3b82f6" /></View>;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
   }
 
   return (
-    <View className="flex-1 bg-slate-900">
+    <View style={{ backgroundColor: colors.background }} className="flex-1">
       <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
         {/* Summary Cards */}
         <View className="flex-row mb-4" style={{ gap: 8 }}>
-          <View className="flex-1 bg-slate-800 p-4 rounded-xl border border-slate-700/30">
-            <Text className="text-slate-400 text-xs font-semibold">Total Balance</Text>
-            <Text className="text-white font-bold text-lg mt-1">₱{totalBalance.toFixed(2)}</Text>
+          <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="flex-1 p-4 rounded-xl border">
+            <Text style={{ color: colors.textMuted }} className="text-xs font-semibold">Total Balance</Text>
+            <Text style={{ color: colors.text }} className="font-bold text-lg mt-1">₱{totalBalance.toFixed(2)}</Text>
           </View>
-          <View className="flex-1 bg-slate-800 p-4 rounded-xl border border-slate-700/30">
-            <Text className="text-slate-400 text-xs font-semibold">Inflow</Text>
+          <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="flex-1 p-4 rounded-xl border">
+            <Text style={{ color: colors.textMuted }} className="text-xs font-semibold">Inflow</Text>
             <Text className="text-emerald-400 font-bold text-lg mt-1">₱{overallIncome.toFixed(2)}</Text>
           </View>
         </View>
@@ -143,10 +150,14 @@ export default function Wallets() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
           <TouchableOpacity
             onPress={() => setSelectedWalletId('all')}
-            className={`mr-3 px-4 py-3 rounded-xl border ${selectedWalletId === 'all' ? 'bg-blue-500/10 border-blue-500' : 'bg-slate-800 border-slate-700/30'}`}
+            style={{
+              backgroundColor: selectedWalletId === 'all' ? colors.primary + '15' : colors.card,
+              borderColor: selectedWalletId === 'all' ? colors.primary : colors.border
+            }}
+            className="mr-3 px-4 py-3 rounded-xl border min-w-[130px]"
           >
-            <Text className={`font-bold text-sm ${selectedWalletId === 'all' ? 'text-blue-400' : 'text-white'}`}>All Wallets</Text>
-            <Text className="text-white font-bold text-base mt-1">₱{totalBalance.toFixed(2)}</Text>
+            <Text style={{ color: selectedWalletId === 'all' ? colors.primary : colors.text }} className="font-bold text-sm">All Wallets</Text>
+            <Text style={{ color: colors.text }} className="font-bold text-base mt-1">₱{totalBalance.toFixed(2)}</Text>
           </TouchableOpacity>
           {wallets.map(wlt => {
             const stats = getWalletStats(wlt.id);
@@ -156,13 +167,17 @@ export default function Wallets() {
                 key={wlt.id}
                 onPress={() => setSelectedWalletId(wlt.id)}
                 onLongPress={() => handleDeleteWallet(wlt.id)}
-                className={`mr-3 px-4 py-3 rounded-xl border min-w-[130px] ${isSelected ? 'bg-blue-500/10 border-blue-500' : 'bg-slate-800 border-slate-700/30'}`}
+                style={{
+                  backgroundColor: isSelected ? colors.primary + '15' : colors.card,
+                  borderColor: isSelected ? colors.primary : colors.border
+                }}
+                className="mr-3 px-4 py-3 rounded-xl border min-w-[130px]"
               >
                 <View className="flex-row items-center justify-between mb-1">
-                  <Text className={`font-bold text-sm ${isSelected ? 'text-blue-400' : 'text-white'}`} numberOfLines={1}>{wlt.name}</Text>
+                  <Text style={{ color: isSelected ? colors.primary : colors.text }} className="font-bold text-sm" numberOfLines={1}>{wlt.name}</Text>
                   {getIcon(wlt.type)}
                 </View>
-                <Text className="text-white font-bold text-base">₱{stats.balance.toFixed(2)}</Text>
+                <Text style={{ color: colors.text }} className="font-bold text-base">₱{stats.balance.toFixed(2)}</Text>
                 <View className="flex-row justify-between mt-1">
                   <Text className="text-emerald-400 text-[10px]">+₱{stats.income.toFixed(0)}</Text>
                   <Text className="text-rose-400 text-[10px]">-₱{stats.spent.toFixed(0)}</Text>
@@ -173,22 +188,22 @@ export default function Wallets() {
         </ScrollView>
 
         {/* Transaction Ledger */}
-        <View className="bg-slate-800 rounded-xl border border-slate-700/30 p-4 mb-20">
-          <Text className="text-white font-semibold text-base mb-3">
+        <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="rounded-xl border p-4 mb-20">
+          <Text style={{ color: colors.text }} className="font-semibold text-base mb-3">
             Ledger: {selectedWalletId === 'all' ? 'All Wallets' : wallets.find(w => w.id === selectedWalletId)?.name || 'Wallet'}
           </Text>
           {filteredTxs.length === 0 ? (
-            <Text className="text-slate-500 text-center py-6">No transactions found.</Text>
+            <Text style={{ color: colors.textMuted }} className="text-center py-6">No transactions found.</Text>
           ) : (
             filteredTxs.map(tx => (
-              <View key={tx.id} className="flex-row items-center justify-between py-3 border-b border-slate-700/30">
+              <View key={tx.id} style={{ borderBottomColor: colors.border + '50' }} className="flex-row items-center justify-between py-3 border-b">
                 <View className="flex-row items-center flex-1 pr-4">
-                  <View className={`p-2 rounded-lg mr-3 ${tx.type === 'income' ? 'bg-emerald-500/10' : 'bg-slate-700'}`}>
-                    {tx.type === 'income' ? <ArrowUpRight color="#10b981" size={14} /> : <ArrowDownRight color="#94a3b8" size={14} />}
+                  <View style={{ backgroundColor: tx.type === 'income' ? '#10b98115' : colors.surface }} className="p-2.5 rounded-lg mr-3">
+                    {tx.type === 'income' ? <ArrowUpRight color="#10b981" size={14} /> : <ArrowDownRight color={colors.textMuted} size={14} />}
                   </View>
                   <View className="flex-1">
-                    <Text className="text-white font-semibold text-sm" numberOfLines={1}>{tx.title}</Text>
-                    <Text className="text-slate-400 text-xs">{tx.categories?.name} • {tx.date}</Text>
+                    <Text style={{ color: colors.text }} className="font-semibold text-sm" numberOfLines={1}>{tx.title}</Text>
+                    <Text style={{ color: colors.textMuted }} className="text-xs mt-0.5">{tx.categories?.name} • {tx.date}</Text>
                   </View>
                 </View>
                 <Text className={`font-bold ${tx.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -203,7 +218,8 @@ export default function Wallets() {
       {/* FAB */}
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
-        className="absolute bottom-6 right-6 bg-blue-500 w-14 h-14 rounded-full items-center justify-center shadow-lg shadow-blue-500/50"
+        style={{ backgroundColor: colors.primary }}
+        className="absolute bottom-6 right-6 w-14 h-14 rounded-full items-center justify-center shadow-lg"
       >
         <Plus color="white" size={24} />
       </TouchableOpacity>
@@ -211,33 +227,40 @@ export default function Wallets() {
       {/* Add Wallet Modal */}
       <Modal animationType="slide" transparent visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View className="flex-1 justify-end bg-black/60">
-          <View className="bg-slate-800 rounded-t-3xl p-6 border-t border-slate-700">
+          <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="rounded-t-3xl p-6 border-t">
             <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-white font-bold text-lg">Create Wallet</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}><X color="#94a3b8" size={22} /></TouchableOpacity>
+              <Text style={{ color: colors.text }} className="font-bold text-lg">Create Wallet</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}><X color={colors.textMuted} size={22} /></TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Wallet Name</Text>
-              <TextInput value={name} onChangeText={setName} placeholder="e.g. Travel Fund" placeholderTextColor="#475569"
-                className="bg-slate-900 p-3 rounded-xl text-white mb-4 border border-slate-700/50" />
+              <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-2">Wallet Name</Text>
+              <TextInput value={name} onChangeText={setName} placeholder="e.g. Travel Fund" placeholderTextColor={colors.textMuted}
+                style={{ backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }}
+                className="p-3 rounded-xl mb-4 border" />
 
-              <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Type</Text>
+              <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-2">Type</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
                 {walletTypes.map(wt => (
                   <TouchableOpacity key={wt.value} onPress={() => setType(wt.value)}
-                    className={`px-4 py-2 rounded-xl border mr-2 ${type === wt.value ? 'bg-blue-500/20 border-blue-500' : 'border-slate-700 bg-slate-900'}`}>
-                    <Text className={type === wt.value ? 'text-blue-400 font-medium' : 'text-slate-400'}>{wt.label}</Text>
+                    style={{
+                      backgroundColor: type === wt.value ? colors.primary + '20' : colors.surface,
+                      borderColor: type === wt.value ? colors.primary : colors.border
+                    }}
+                    className="px-4 py-2.5 rounded-xl border mr-2">
+                    <Text style={{ color: type === wt.value ? colors.primary : colors.textMuted }} className="font-bold text-sm">{wt.label}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
 
-              <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Starting Balance (₱)</Text>
-              <TextInput value={initialBalance} onChangeText={setInitialBalance} placeholder="0.00" placeholderTextColor="#475569"
-                keyboardType="numeric" className="bg-slate-900 p-3 rounded-xl text-white mb-6 border border-slate-700/50" />
+              <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-2">Starting Balance (₱)</Text>
+              <TextInput value={initialBalance} onChangeText={setInitialBalance} placeholder="0.00" placeholderTextColor={colors.textMuted}
+                style={{ backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }}
+                keyboardType="numeric" className="p-3 rounded-xl mb-6 border" />
 
               <TouchableOpacity onPress={handleAddWallet} disabled={isSubmitting}
-                className={`p-4 rounded-xl items-center mb-8 ${isSubmitting ? 'bg-blue-500/50' : 'bg-blue-500'}`}>
-                <Text className="text-white font-semibold text-lg">{isSubmitting ? 'Saving...' : 'Save Wallet'}</Text>
+                style={{ backgroundColor: colors.primary, opacity: isSubmitting ? 0.6 : 1 }}
+                className="p-4 rounded-xl items-center mb-8">
+                <Text className="text-white font-bold text-base">{isSubmitting ? 'Saving...' : 'Save Wallet'}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>

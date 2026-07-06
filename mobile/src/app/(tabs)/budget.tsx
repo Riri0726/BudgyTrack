@@ -1,10 +1,13 @@
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 
 export default function Budget() {
   const { user } = useAuth();
+  const { colors } = useTheme();
+
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -60,27 +63,31 @@ export default function Budget() {
   const getBarColor = (pct: number) => {
     if (pct > 100) return '#f43f5e';
     if (pct > 75) return '#f59e0b';
-    return '#10b981';
+    return colors.primary;
   };
 
   if (loading) {
-    return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' }}><ActivityIndicator size="large" color="#3b82f6" /></View>;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
   }
 
   return (
-    <ScrollView className="flex-1 bg-slate-900 p-4" showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ backgroundColor: colors.background }} className="flex-1 p-4" showsVerticalScrollIndicator={false}>
       {/* Overall Summary Card */}
-      <View className="bg-slate-800 rounded-2xl p-5 border border-slate-700/30 mb-4">
-        <Text className="text-white font-semibold text-base mb-3">Overall Budget</Text>
+      <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="rounded-2xl p-5 border mb-4">
+        <Text style={{ color: colors.text }} className="font-bold text-base mb-3">Overall Budget</Text>
         <View className="flex-row justify-between mb-2">
-          <Text className="text-slate-400 text-xs">Spent: ₱{totalSpent.toFixed(2)}</Text>
-          <Text className="text-slate-400 text-xs">Limit: ₱{totalBudget.toFixed(2)}</Text>
+          <Text style={{ color: colors.textMuted }} className="text-xs">Spent: ₱{totalSpent.toFixed(2)}</Text>
+          <Text style={{ color: colors.textMuted }} className="text-xs">Limit: ₱{totalBudget.toFixed(2)}</Text>
         </View>
-        <View className="w-full bg-slate-700 rounded-full h-3 overflow-hidden mb-3">
+        <View style={{ backgroundColor: colors.surface }} className="w-full rounded-full h-3 overflow-hidden mb-3">
           <View style={{ width: `${Math.min(totalPercent, 100)}%`, backgroundColor: getBarColor(totalPercent), height: '100%', borderRadius: 999 }} />
         </View>
-        <View className={`self-start px-3 py-1 rounded-full ${totalPercent > 100 ? 'bg-rose-500/10' : totalPercent > 75 ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
-          <Text className={`text-xs font-bold ${totalPercent > 100 ? 'text-rose-400' : totalPercent > 75 ? 'text-amber-400' : 'text-emerald-400'}`}>
+        <View style={{ backgroundColor: totalPercent > 100 ? '#ef444420' : totalPercent > 75 ? '#f59e0b20' : colors.primary + '20' }} className="self-start px-3 py-1 rounded-full">
+          <Text style={{ color: totalPercent > 100 ? '#ef4444' : totalPercent > 75 ? '#f59e0b' : colors.primary }} className="text-xs font-bold">
             {totalPercent}% spent
           </Text>
         </View>
@@ -89,7 +96,7 @@ export default function Budget() {
       {/* Category Budget Cards */}
       {categories.length === 0 ? (
         <View className="py-12 items-center">
-          <Text className="text-slate-500">No expense categories found. Add them in Settings.</Text>
+          <Text style={{ color: colors.textMuted }} className="text-sm">No expense categories found. Add them in Settings.</Text>
         </View>
       ) : (
         categories.map(cat => {
@@ -97,9 +104,9 @@ export default function Budget() {
           const isEditing = editingId === cat.id;
 
           return (
-            <View key={cat.id} className="bg-slate-800 rounded-2xl p-5 border border-slate-700/30 mb-3">
+            <View key={cat.id} style={{ backgroundColor: colors.card, borderColor: colors.border }} className="rounded-2xl p-5 border mb-3">
               <View className="flex-row justify-between items-center mb-3">
-                <Text className="text-white font-bold text-base">{cat.name}</Text>
+                <Text style={{ color: colors.text }} className="font-bold text-base">{cat.name}</Text>
                 {isEditing ? (
                   <View className="flex-row items-center" style={{ gap: 8 }}>
                     <TextInput
@@ -107,34 +114,36 @@ export default function Budget() {
                       onChangeText={setNewBudgetVal}
                       keyboardType="numeric"
                       placeholder="0.00"
-                      placeholderTextColor="#475569"
-                      className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-sm w-20"
+                      placeholderTextColor={colors.textMuted}
+                      style={{ backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }}
+                      className="border rounded-lg px-3 py-1.5 text-sm w-20"
                     />
-                    <TouchableOpacity onPress={() => handleSave(cat.id)} className="bg-blue-500 px-3 py-1.5 rounded-lg">
+                    <TouchableOpacity onPress={() => handleSave(cat.id)} style={{ backgroundColor: colors.primary }} className="px-3.5 py-2 rounded-lg">
                       <Text className="text-white text-xs font-bold">Save</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
                   <TouchableOpacity
                     onPress={() => { setEditingId(cat.id); setNewBudgetVal(cat.budget.toString()); }}
-                    className="border border-slate-700 px-3 py-1.5 rounded-lg"
+                    style={{ borderColor: colors.border }}
+                    className="border px-3 py-1.5 rounded-lg"
                   >
-                    <Text className="text-slate-400 text-xs font-semibold">Adjust</Text>
+                    <Text style={{ color: colors.textMuted }} className="text-xs font-semibold">Adjust</Text>
                   </TouchableOpacity>
                 )}
               </View>
 
               <View className="flex-row justify-between mb-2">
-                <Text className="text-slate-400 text-xs">Spent: ₱{cat.spent.toFixed(2)}</Text>
-                <Text className="text-slate-400 text-xs">Limit: ₱{parseFloat(cat.budget).toFixed(2)}</Text>
+                <Text style={{ color: colors.textMuted }} className="text-xs">Spent: ₱{cat.spent.toFixed(2)}</Text>
+                <Text style={{ color: colors.textMuted }} className="text-xs">Limit: ₱{parseFloat(cat.budget).toFixed(2)}</Text>
               </View>
 
-              <View className="w-full bg-slate-700 rounded-full h-2 overflow-hidden mb-3">
+              <View style={{ backgroundColor: colors.surface }} className="w-full rounded-full h-2 overflow-hidden mb-3">
                 <View style={{ width: `${Math.min(percent, 100)}%`, backgroundColor: getBarColor(percent), height: '100%', borderRadius: 999 }} />
               </View>
 
-              <View className={`self-start px-2 py-0.5 rounded-md ${percent > 100 ? 'bg-rose-500/10' : percent > 75 ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
-                <Text className={`text-[10px] font-bold ${percent > 100 ? 'text-rose-400' : percent > 75 ? 'text-amber-400' : 'text-emerald-400'}`}>
+              <View style={{ backgroundColor: percent > 100 ? '#ef444420' : percent > 75 ? '#f59e0b20' : colors.primary + '20' }} className="self-start px-2 py-0.5 rounded-md">
+                <Text style={{ color: percent > 100 ? '#ef4444' : percent > 75 ? '#f59e0b' : colors.primary }} className="text-[10px] font-bold">
                   {percent}% Spent
                 </Text>
               </View>

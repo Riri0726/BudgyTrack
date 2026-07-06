@@ -1,16 +1,19 @@
 import { Tabs } from 'expo-router';
 import { Home, CreditCard, FolderHeart, SlidersHorizontal, Settings } from 'lucide-react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function TabsLayout() {
+  const { colors } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
-        headerStyle: { backgroundColor: '#0f172a' },
-        headerTintColor: '#fff',
-        tabBarStyle: { backgroundColor: '#1e293b', borderTopColor: '#334155' },
-        tabBarActiveTintColor: '#3b82f6',
-        tabBarInactiveTintColor: '#94a3b8',
+        headerStyle: { backgroundColor: colors.card, borderBottomColor: colors.border, borderBottomWidth: 1 },
+        headerTintColor: colors.text,
+        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
       }}>
       <Tabs.Screen
         name="index"

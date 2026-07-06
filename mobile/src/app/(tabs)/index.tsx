@@ -3,22 +3,15 @@ import { BarChart } from 'react-native-chart-kit';
 import { Sparkles, Wallet, Landmark, Smartphone } from 'lucide-react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { useRouter } from 'expo-router';
 
 const screenWidth = Dimensions.get('window').width;
 
-const chartConfig = {
-  backgroundGradientFrom: '#1e293b',
-  backgroundGradientTo: '#1e293b',
-  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-  strokeWidth: 2,
-  barPercentage: 0.5,
-  useShadowColorFromDataset: false,
-};
-
 export default function Dashboard() {
   const { user } = useAuth();
+  const { colors } = useTheme();
   const router = useRouter();
 
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -146,83 +139,99 @@ export default function Dashboard() {
     return Wallet;
   };
 
+  const dynamicChartConfig = {
+    backgroundGradientFrom: colors.card,
+    backgroundGradientTo: colors.card,
+    color: (opacity = 1) => {
+      const hex = colors.primary;
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    },
+    strokeWidth: 2,
+    barPercentage: 0.5,
+    useShadowColorFromDataset: false,
+    labelColor: (opacity = 1) => colors.textMuted,
+  };
+
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' }}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <ScrollView className="flex-1 bg-slate-900" contentContainerStyle={{ padding: 16 }}>
+    <ScrollView style={{ backgroundColor: colors.background }} className="flex-1" contentContainerStyle={{ padding: 16 }}>
       {/* Dynamic Budget Alert Status */}
-      <View className={`p-4 rounded-2xl border ${alertBg} flex-row mb-6 items-start space-x-3`}>
-        <View className="p-2 bg-white/5 rounded-xl">
+      <View style={{ borderColor: alertColor + '30', backgroundColor: alertColor + '10' }} className="p-4 rounded-2xl border flex-row mb-6 items-start">
+        <View style={{ backgroundColor: alertColor + '15' }} className="p-2.5 rounded-xl mr-3">
           <Sparkles color={alertColor} size={22} />
         </View>
         <View className="flex-1">
-          <Text className="text-white font-bold text-base">{alertTitle}</Text>
-          <Text className="text-slate-300 text-xs mt-1 leading-4">{alertMessage}</Text>
+          <Text style={{ color: colors.text }} className="font-bold text-base">{alertTitle}</Text>
+          <Text style={{ color: colors.text }} className="text-xs mt-1 leading-4 opacity-80">{alertMessage}</Text>
         </View>
       </View>
 
       {/* Net Worth Dashboard Card */}
-      <View className="bg-slate-800 p-6 rounded-2xl mb-6 shadow-lg shadow-black/20">
-        <Text className="text-slate-400 font-medium mb-1">Total Balance</Text>
-        <Text className="text-4xl font-bold text-white">₱{totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</Text>
+      <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="p-6 rounded-2xl border mb-6 shadow-sm">
+        <Text style={{ color: colors.textMuted }} className="font-medium mb-1">Total Balance</Text>
+        <Text style={{ color: colors.text }} className="text-4xl font-bold">₱{totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</Text>
         
-        <View className="mt-6 flex-row justify-between border-t border-slate-700/50 pt-4">
+        <View style={{ borderTopColor: colors.border }} className="mt-6 flex-row justify-between border-t pt-4">
           <View>
-            <Text className="text-slate-400 text-xs">Income</Text>
+            <Text style={{ color: colors.textMuted }} className="text-xs">Income</Text>
             <Text className="text-base font-semibold text-emerald-400 mt-0.5">₱{actualIncome.toFixed(2)}</Text>
           </View>
           <View>
-            <Text className="text-slate-400 text-xs">Expenses</Text>
+            <Text style={{ color: colors.textMuted }} className="text-xs">Expenses</Text>
             <Text className="text-base font-semibold text-rose-400 mt-0.5">₱{actualExpense.toFixed(2)}</Text>
           </View>
           <View>
-            <Text className="text-slate-400 text-xs">Net Savings</Text>
+            <Text style={{ color: colors.textMuted }} className="text-xs">Net Savings</Text>
             <Text className="text-base font-semibold text-sky-400 mt-0.5">₱{actualSavings.toFixed(2)}</Text>
           </View>
         </View>
       </View>
 
       {/* Chart widget */}
-      <View className="bg-slate-800 p-4 rounded-2xl mb-6">
-        <Text className="text-base font-semibold text-white mb-4">Weekly Expenses Trend</Text>
+      <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="p-4 rounded-2xl border mb-6">
+        <Text style={{ color: colors.text }} className="text-base font-bold mb-4">Weekly Expenses Trend</Text>
         <BarChart
           data={weeklyExpenseData}
           width={screenWidth - 64}
           height={200}
           yAxisLabel="₱"
           yAxisSuffix=""
-          chartConfig={chartConfig}
+          chartConfig={dynamicChartConfig}
           verticalLabelRotation={0}
           fromZero
-          style={{ borderRadius: 16 }}
+          style={{ borderRadius: 12 }}
         />
       </View>
 
       {/* Accounts widget */}
-      <View className="bg-slate-800 p-4 rounded-2xl mb-6">
-        <Text className="text-base font-semibold text-white mb-4">Your Wallets</Text>
+      <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="p-4 rounded-2xl border mb-6">
+        <Text style={{ color: colors.text }} className="text-base font-bold mb-4">Your Wallets</Text>
         {accounts.length === 0 ? (
-          <Text className="text-slate-500 text-sm py-2">No wallets found.</Text>
+          <Text style={{ color: colors.textMuted }} className="text-sm py-2">No wallets found.</Text>
         ) : accounts.map((acc) => {
           const Icon = getAccountIcon(acc.type);
           return (
-            <View key={acc.id} className="flex-row items-center justify-between py-3 border-b border-slate-700/50 last:border-b-0">
-              <View className="flex-row items-center space-x-3">
-                <View className="p-2 bg-slate-700/50 rounded-lg">
-                  <Icon color="#94a3b8" size={18} />
+            <View key={acc.id} style={{ borderBottomColor: colors.border }} className="flex-row items-center justify-between py-3 border-b last:border-b-0">
+              <View className="flex-row items-center">
+                <View style={{ backgroundColor: colors.surface }} className="p-2.5 rounded-lg mr-3">
+                  <Icon color={colors.textMuted} size={18} />
                 </View>
                 <View>
-                  <Text className="text-white font-semibold text-sm">{acc.name}</Text>
-                  <Text className="text-slate-400 text-xs uppercase">{acc.type}</Text>
+                  <Text style={{ color: colors.text }} className="font-semibold text-sm">{acc.name}</Text>
+                  <Text style={{ color: colors.textMuted }} className="text-xs uppercase mt-0.5">{acc.type}</Text>
                 </View>
               </View>
-              <Text className="text-white font-bold text-sm">₱{parseFloat(acc.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}</Text>
+              <Text style={{ color: colors.text }} className="font-bold text-sm">₱{parseFloat(acc.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}</Text>
             </View>
           );
         })}
@@ -230,9 +239,10 @@ export default function Dashboard() {
 
       <TouchableOpacity 
         onPress={() => router.push('/transactions')}
-        className="bg-blue-500 py-4 rounded-xl items-center mb-10 shadow-lg shadow-blue-500/30"
+        style={{ backgroundColor: colors.primary }}
+        className="py-4 rounded-xl items-center mb-10 shadow-lg"
       >
-        <Text className="text-white font-semibold text-lg">Manage Transactions</Text>
+        <Text className="text-white font-bold text-base">Manage Transactions</Text>
       </TouchableOpacity>
     </ScrollView>
   );

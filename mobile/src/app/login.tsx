@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Landmark } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 
 export default function Login() {
   const { signIn, signUp } = useAuth();
+  const { colors } = useTheme();
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,16 +49,17 @@ export default function Login() {
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-slate-900"
+      style={{ backgroundColor: colors.background }}
+      className="flex-1"
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 16 }}>
-        <View className="bg-slate-800 p-8 rounded-2xl shadow-lg border border-slate-700/50">
+        <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="p-8 rounded-3xl border shadow-lg">
           <View className="items-center mb-6">
-            <View className="p-3 bg-blue-500/10 rounded-xl mb-3">
-              <Landmark color="#3b82f6" size={32} />
+            <View style={{ backgroundColor: colors.primary + '15' }} className="p-3.5 rounded-2xl mb-3">
+              <Landmark color={colors.primary} size={32} />
             </View>
-            <Text className="text-2xl font-bold text-white mb-1">BudgyTrack Account</Text>
-            <Text className="text-sm text-slate-400 text-center">
+            <Text style={{ color: colors.text }} className="text-2xl font-bold mb-1">BudgyTrack Account</Text>
+            <Text style={{ color: colors.textMuted }} className="text-sm text-center">
               {isRegistering ? 'Create your budget planner profile' : 'Sign in to access your dashboard'}
             </Text>
           </View>
@@ -69,75 +72,80 @@ export default function Login() {
 
           <View className="space-y-4">
             {isRegistering && (
-              <View className="flex-row space-x-4 mb-4">
-                <View className="flex-1">
-                  <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">First Name</Text>
+              <View className="flex-row mb-4">
+                <View className="flex-1 mr-2">
+                  <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-1">First Name</Text>
                   <TextInput
                     value={fname}
                     onChangeText={setFname}
                     placeholder="Jane"
-                    placeholderTextColor="#475569"
-                    className="bg-slate-900 border border-slate-700/50 rounded-xl py-3 px-4 text-white focus:border-blue-500"
+                    placeholderTextColor={colors.textMuted}
+                    style={{ backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }}
+                    className="border rounded-xl py-3 px-4"
                   />
                 </View>
-                <View className="flex-1 ml-4">
-                  <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Last Name</Text>
+                <View className="flex-1 ml-2">
+                  <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-1">Last Name</Text>
                   <TextInput
                     value={lname}
                     onChangeText={setLname}
                     placeholder="Doe"
-                    placeholderTextColor="#475569"
-                    className="bg-slate-900 border border-slate-700/50 rounded-xl py-3 px-4 text-white focus:border-blue-500"
+                    placeholderTextColor={colors.textMuted}
+                    style={{ backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }}
+                    className="border rounded-xl py-3 px-4"
                   />
                 </View>
               </View>
             )}
 
             <View className="mb-4">
-              <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Email Address</Text>
+              <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-1">Email Address</Text>
               <TextInput
                 value={email}
                 onChangeText={setEmail}
                 placeholder="name@example.com"
-                placeholderTextColor="#475569"
+                placeholderTextColor={colors.textMuted}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                className="bg-slate-900 border border-slate-700/50 rounded-xl py-3 px-4 text-white focus:border-blue-500"
+                style={{ backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }}
+                className="border rounded-xl py-3 px-4"
               />
             </View>
 
             <View className="mb-6">
-              <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Password</Text>
+              <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-1">Password</Text>
               <TextInput
                 value={password}
                 onChangeText={setPassword}
                 placeholder="••••••••"
-                placeholderTextColor="#475569"
+                placeholderTextColor={colors.textMuted}
                 secureTextEntry
-                className="bg-slate-900 border border-slate-700/50 rounded-xl py-3 px-4 text-white focus:border-blue-500"
+                style={{ backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }}
+                className="border rounded-xl py-3 px-4"
               />
             </View>
 
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={loading}
-              className={`w-full py-4 rounded-xl items-center shadow-lg mb-6 ${loading ? 'bg-blue-500/50' : 'bg-blue-500 shadow-blue-500/30'}`}
+              style={{ backgroundColor: colors.primary, opacity: loading ? 0.6 : 1 }}
+              className="w-full py-4 rounded-xl items-center shadow-lg mb-6"
             >
-              <Text className="text-white font-semibold text-sm">
+              <Text className="text-white font-bold text-base">
                 {loading ? 'Please wait...' : isRegistering ? 'Sign Up' : 'Sign In'}
               </Text>
             </TouchableOpacity>
           </View>
 
           <View className="flex-row justify-center items-center mt-2">
-            <Text className="text-slate-400 text-xs">
+            <Text style={{ color: colors.textMuted }} className="text-xs">
               {isRegistering ? 'Already have an account? ' : "Don't have an account? "}
             </Text>
             <TouchableOpacity onPress={() => {
               setIsRegistering(!isRegistering);
               setErrorMsg('');
             }}>
-              <Text className="text-blue-400 text-xs font-semibold">
+              <Text style={{ color: colors.primary }} className="text-xs font-semibold">
                 {isRegistering ? 'Sign In' : 'Sign Up'}
               </Text>
             </TouchableOpacity>

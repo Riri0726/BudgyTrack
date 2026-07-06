@@ -1,7 +1,8 @@
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Switch } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
-import { User, MapPin, Plus, Trash2, Tag } from 'lucide-react-native';
+import { User, MapPin, Plus, Trash2, Tag, Palette, Sun, Moon } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme, ThemeType } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,6 +10,7 @@ import { startLocationTracking } from '../../lib/locationTask';
 
 export default function Settings() {
   const { user, signOut } = useAuth();
+  const { theme, setTheme, mode, setMode, colors } = useTheme();
 
   // Profile
   const [fname, setFname] = useState('');
@@ -64,7 +66,6 @@ export default function Settings() {
 
   useEffect(() => {
     if (user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchProfile();
       fetchCategories();
     }
@@ -190,139 +191,236 @@ export default function Settings() {
     }
   };
 
+  const themesList = [
+    { id: 'red', name: 'Crimson Core', color: '#ef4444' },
+    { id: 'blue', name: 'Azure Deep', color: '#3b82f6' },
+    { id: 'purple', name: 'Amethyst Flow', color: '#a78bfa' },
+    { id: 'galaxy', name: 'Galaxy Space', color: '#f472b6' },
+  ];
+
   const radiusOptions = [500, 1000, 1500, 2000, 3000, 5000];
 
   if (loading) {
-    return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' }}><ActivityIndicator size="large" color="#3b82f6" /></View>;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
   }
 
   return (
-    <ScrollView className="flex-1 bg-slate-900 p-4" showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ backgroundColor: colors.background }} className="flex-1 p-4" showsVerticalScrollIndicator={false}>
 
       {/* ===== PROFILE SECTION ===== */}
-      <View className="bg-slate-800 rounded-2xl p-5 border border-slate-700/30 mb-4">
+      <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="rounded-2xl p-5 border mb-4">
         <View className="flex-row items-center mb-4">
-          <View className="p-2.5 bg-blue-500/10 rounded-xl mr-3"><User color="#3b82f6" size={20} /></View>
-          <Text className="text-white font-bold text-base">Profile</Text>
+          <View style={{ backgroundColor: colors.primary + '15' }} className="p-2.5 rounded-xl mr-3">
+            <User color={colors.primary} size={20} />
+          </View>
+          <Text style={{ color: colors.text }} className="font-bold text-base">Profile</Text>
         </View>
 
-        <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">First Name</Text>
-        <TextInput value={fname} onChangeText={setFname} placeholder="Jane" placeholderTextColor="#475569"
-          className="bg-slate-900 p-3 rounded-xl text-white mb-3 border border-slate-700/50" />
+        <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-2">First Name</Text>
+        <TextInput value={fname} onChangeText={setFname} placeholder="Jane" placeholderTextColor={colors.textMuted}
+          style={{ backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }}
+          className="p-3 rounded-xl mb-3 border" />
 
-        <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Last Name</Text>
-        <TextInput value={lname} onChangeText={setLname} placeholder="Doe" placeholderTextColor="#475569"
-          className="bg-slate-900 p-3 rounded-xl text-white mb-4 border border-slate-700/50" />
+        <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-2">Last Name</Text>
+        <TextInput value={lname} onChangeText={setLname} placeholder="Doe" placeholderTextColor={colors.textMuted}
+          style={{ backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }}
+          className="p-3 rounded-xl mb-4 border" />
 
         <TouchableOpacity onPress={handleUpdateProfile} disabled={profileLoading}
-          className={`p-3 rounded-xl items-center ${profileLoading ? 'bg-blue-500/50' : 'bg-blue-500'}`}>
-          <Text className="text-white font-semibold">{profileLoading ? 'Saving...' : 'Update Profile'}</Text>
+          style={{ backgroundColor: colors.primary, opacity: profileLoading ? 0.6 : 1 }}
+          className="p-3.5 rounded-xl items-center">
+          <Text className="text-white font-bold">{profileLoading ? 'Saving...' : 'Update Profile'}</Text>
         </TouchableOpacity>
       </View>
 
+      {/* ===== APPEARANCE / THEME SECTION ===== */}
+      <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="rounded-2xl p-5 border mb-4">
+        <View className="flex-row items-center mb-4">
+          <View style={{ backgroundColor: colors.primary + '15' }} className="p-2.5 rounded-xl mr-3">
+            <Palette color={colors.primary} size={20} />
+          </View>
+          <Text style={{ color: colors.text }} className="font-bold text-base">Theme & Appearance</Text>
+        </View>
+
+        {/* Theme Picker */}
+        <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-3">Theme Color</Text>
+        <View className="flex-row justify-between mb-5" style={{ gap: 6 }}>
+          {themesList.map((t) => (
+            <TouchableOpacity
+              key={t.id}
+              onPress={() => setTheme(t.id as ThemeType)}
+              style={{
+                borderColor: theme === t.id ? colors.primary : colors.border,
+                backgroundColor: theme === t.id ? colors.primary + '15' : colors.surface,
+              }}
+              className="flex-1 p-3 rounded-xl border items-center justify-center"
+            >
+              <View style={{ backgroundColor: t.color }} className="w-5 h-5 rounded-full mb-1" />
+              <Text style={{ color: colors.text }} className="text-[9px] font-bold text-center">{t.name.split(' ')[0]}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Mode Picker */}
+        <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-2">Appearance Mode</Text>
+        <View className="flex-row p-1 rounded-xl" style={{ backgroundColor: colors.surface, gap: 4 }}>
+          <TouchableOpacity onPress={() => setMode('light')}
+            style={{
+              backgroundColor: mode === 'light' ? colors.card : 'transparent',
+              borderColor: mode === 'light' ? colors.border : 'transparent',
+              borderWidth: 1,
+            }}
+            className="flex-1 py-2.5 rounded-lg items-center justify-center flex-row"
+          >
+            <Sun size={14} color={mode === 'light' ? colors.primary : colors.textMuted} className="mr-1.5" />
+            <Text style={{ color: mode === 'light' ? colors.primary : colors.textMuted }} className="font-semibold text-xs">Light</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setMode('dark')}
+            style={{
+              backgroundColor: mode === 'dark' ? colors.card : 'transparent',
+              borderColor: mode === 'dark' ? colors.border : 'transparent',
+              borderWidth: 1,
+            }}
+            className="flex-1 py-2.5 rounded-lg items-center justify-center flex-row"
+          >
+            <Moon size={14} color={mode === 'dark' ? colors.primary : colors.textMuted} className="mr-1.5" />
+            <Text style={{ color: mode === 'dark' ? colors.primary : colors.textMuted }} className="font-semibold text-xs">Dark</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* ===== RADIUS NOTIFICATOR SECTION ===== */}
-      <View className="bg-slate-800 rounded-2xl p-5 border border-slate-700/30 mb-4">
+      <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="rounded-2xl p-5 border mb-4">
         <View className="flex-row items-center justify-between mb-4">
-          <View className="flex-row items-center">
-            <View className="p-2.5 bg-emerald-500/10 rounded-xl mr-3"><MapPin color="#10b981" size={20} /></View>
-            <View>
-              <Text className="text-white font-bold text-base">Radius Notificator</Text>
-              <Text className="text-slate-400 text-xs">Get reminded to log expenses away from home</Text>
+          <View className="flex-row items-center flex-1 mr-2">
+            <View style={{ backgroundColor: colors.primary + '15' }} className="p-2.5 rounded-xl mr-3">
+              <MapPin color={colors.primary} size={20} />
+            </View>
+            <View className="flex-1">
+              <Text style={{ color: colors.text }} className="font-bold text-base">Radius Notificator</Text>
+              <Text style={{ color: colors.textMuted }} className="text-xs leading-4 mt-0.5">Get reminded to log expenses away from home</Text>
             </View>
           </View>
           <Switch
             value={radiusEnabled}
             onValueChange={handleToggleRadius}
-            trackColor={{ false: '#334155', true: '#10b981' }}
+            trackColor={{ false: colors.border, true: colors.primary }}
             thumbColor="#ffffff"
           />
         </View>
 
         {/* Home location status */}
-        <View className="bg-slate-900 rounded-xl p-4 border border-slate-700/30 mb-4">
+        <View style={{ backgroundColor: colors.surface, borderColor: colors.border }} className="rounded-xl p-4 border mb-4">
           {homeLat && homeLng ? (
             <View>
-              <Text className="text-emerald-400 text-xs font-bold uppercase mb-1">📍 Home Pinned</Text>
-              <Text className="text-slate-400 text-xs">{homeLat.toFixed(6)}, {homeLng.toFixed(6)}</Text>
+              <Text style={{ color: colors.primary }} className="text-xs font-bold uppercase mb-1">📍 Home Pinned</Text>
+              <Text style={{ color: colors.textMuted }} className="text-xs">{homeLat.toFixed(6)}, {homeLng.toFixed(6)}</Text>
             </View>
           ) : (
-            <Text className="text-amber-400 text-xs font-semibold">No home location set. Pin your current location below.</Text>
+            <Text className="text-amber-500 text-xs font-semibold">No home location set. Pin your current location below.</Text>
           )}
         </View>
 
         {/* Pin / Re-pin home */}
         <TouchableOpacity onPress={handlePinHomeLocation} disabled={locationLoading}
-          className={`p-3 rounded-xl items-center mb-4 border ${locationLoading ? 'bg-slate-700 border-slate-600' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
-          <Text className={`font-semibold text-sm ${locationLoading ? 'text-slate-400' : 'text-emerald-400'}`}>
+          style={{
+            backgroundColor: colors.primary + '10',
+            borderColor: colors.primary + '30',
+          }}
+          className="p-3.5 rounded-xl items-center mb-4 border">
+          <Text style={{ color: colors.primary }} className="font-bold text-sm">
             {locationLoading ? 'Getting GPS...' : homeLat ? '📍 Re-pin Home Location' : '📍 Pin Current Location as Home'}
           </Text>
         </TouchableOpacity>
 
         {/* Radius selector */}
-        <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">Notification Radius</Text>
+        <Text style={{ color: colors.textMuted }} className="text-xs font-semibold uppercase tracking-wider mb-2">Notification Radius</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
           {radiusOptions.map(r => (
             <TouchableOpacity key={r} onPress={() => handleUpdateRadius(r)}
-              className={`px-4 py-2 rounded-xl border mr-2 ${radiusMeters === r ? 'bg-blue-500/20 border-blue-500' : 'border-slate-700 bg-slate-900'}`}>
-              <Text className={`font-medium text-sm ${radiusMeters === r ? 'text-blue-400' : 'text-slate-400'}`}>
+              style={{
+                backgroundColor: radiusMeters === r ? colors.primary + '20' : colors.surface,
+                borderColor: radiusMeters === r ? colors.primary : colors.border,
+              }}
+              className="px-4 py-2.5 rounded-xl border mr-2">
+              <Text style={{ color: radiusMeters === r ? colors.primary : colors.textMuted }} className="font-bold text-sm">
                 {r >= 1000 ? `${r / 1000}km` : `${r}m`}
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
-        <Text className="text-slate-500 text-[10px] mt-1">
+        <Text style={{ color: colors.textMuted }} className="text-[10px] mt-1.5 leading-3">
           {`You'll be notified after being ${radiusMeters >= 1000 ? `${radiusMeters / 1000}km` : `${radiusMeters}m`} from home for 10+ minutes.`}
         </Text>
       </View>
 
       {/* ===== CATEGORIES SECTION ===== */}
-      <View className="bg-slate-800 rounded-2xl p-5 border border-slate-700/30 mb-4">
+      <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="rounded-2xl p-5 border mb-4">
         <View className="flex-row items-center mb-4">
-          <View className="p-2.5 bg-amber-500/10 rounded-xl mr-3"><Tag color="#f59e0b" size={20} /></View>
-          <Text className="text-white font-bold text-base">Categories</Text>
+          <View style={{ backgroundColor: colors.primary + '15' }} className="p-2.5 rounded-xl mr-3">
+            <Tag color={colors.primary} size={20} />
+          </View>
+          <Text style={{ color: colors.text }} className="font-bold text-base">Categories</Text>
         </View>
 
         {/* Add Category */}
         <View className="flex-row mb-4" style={{ gap: 8 }}>
-          <TextInput value={newCatName} onChangeText={setNewCatName} placeholder="New category..." placeholderTextColor="#475569"
-            className="flex-1 bg-slate-900 p-3 rounded-xl text-white border border-slate-700/50" />
-          <TouchableOpacity onPress={handleAddCategory} className="bg-blue-500 p-3 rounded-xl items-center justify-center">
+          <TextInput value={newCatName} onChangeText={setNewCatName} placeholder="New category..." placeholderTextColor={colors.textMuted}
+            style={{ backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }}
+            className="flex-1 p-3 rounded-xl border" />
+          <TouchableOpacity onPress={handleAddCategory} style={{ backgroundColor: colors.primary }} className="p-3.5 rounded-xl items-center justify-center">
             <Plus color="white" size={20} />
           </TouchableOpacity>
         </View>
 
         {/* Type selector for new category */}
-        <View className="flex-row mb-4 bg-slate-900 p-1 rounded-xl">
+        <View className="flex-row mb-4 p-1 rounded-xl" style={{ backgroundColor: colors.surface, gap: 4 }}>
           <TouchableOpacity onPress={() => setNewCatType('expense')}
-            className={`flex-1 py-2 rounded-lg items-center ${newCatType === 'expense' ? 'bg-rose-500/20 border border-rose-500/30' : ''}`}>
-            <Text className={`font-semibold text-xs ${newCatType === 'expense' ? 'text-rose-400' : 'text-slate-400'}`}>Expense</Text>
+            style={{
+              backgroundColor: newCatType === 'expense' ? colors.card : 'transparent',
+              borderColor: newCatType === 'expense' ? colors.border : 'transparent',
+              borderWidth: 1,
+            }}
+            className="flex-1 py-2 rounded-lg items-center"
+          >
+            <Text style={{ color: newCatType === 'expense' ? '#ef4444' : colors.textMuted }} className="font-semibold text-xs">Expense</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setNewCatType('income')}
-            className={`flex-1 py-2 rounded-lg items-center ${newCatType === 'income' ? 'bg-emerald-500/20 border border-emerald-500/30' : ''}`}>
-            <Text className={`font-semibold text-xs ${newCatType === 'income' ? 'text-emerald-400' : 'text-slate-400'}`}>Income</Text>
+            style={{
+              backgroundColor: newCatType === 'income' ? colors.card : 'transparent',
+              borderColor: newCatType === 'income' ? colors.border : 'transparent',
+              borderWidth: 1,
+            }}
+            className="flex-1 py-2 rounded-lg items-center"
+          >
+            <Text style={{ color: newCatType === 'income' ? '#10b981' : colors.textMuted }} className="font-semibold text-xs">Income</Text>
           </TouchableOpacity>
         </View>
 
         {/* Category list */}
         {categories.map(cat => (
-          <View key={cat.id} className="flex-row items-center justify-between py-3 border-b border-slate-700/30">
+          <View key={cat.id} style={{ borderBottomColor: colors.border + '50' }} className="flex-row items-center justify-between py-3 border-b">
             <View className="flex-row items-center flex-1">
-              <View className={`w-2 h-2 rounded-full mr-3 ${cat.type === 'expense' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+              <View className={`w-2.5 h-2.5 rounded-full mr-3 ${cat.type === 'expense' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
               <View>
-                <Text className="text-white font-medium text-sm">{cat.name}</Text>
-                <Text className="text-slate-500 text-[10px] uppercase font-bold">{cat.type}</Text>
+                <Text style={{ color: colors.text }} className="font-semibold text-sm">{cat.name}</Text>
+                <Text style={{ color: colors.textMuted }} className="text-[10px] uppercase font-bold mt-0.5">{cat.type}</Text>
               </View>
             </View>
             <TouchableOpacity onPress={() => handleDeleteCategory(cat.id, cat.name)} className="p-2">
-              <Trash2 color="#64748b" size={16} />
+              <Trash2 color={colors.textMuted} size={16} />
             </TouchableOpacity>
           </View>
         ))}
       </View>
 
       {/* Sign Out */}
-      <TouchableOpacity onPress={signOut} className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-2xl items-center mb-20">
-        <Text className="text-rose-400 font-bold">Sign Out</Text>
+      <TouchableOpacity onPress={signOut} style={{ borderColor: '#ef444430', backgroundColor: '#ef444410' }} className="border p-4 rounded-2xl items-center mb-20">
+        <Text className="text-rose-500 font-bold text-sm">Sign Out</Text>
       </TouchableOpacity>
     </ScrollView>
   );

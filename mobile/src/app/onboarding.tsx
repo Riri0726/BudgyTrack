@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { MapPin } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { startLocationTracking } from '../lib/locationTask';
 import { useRouter } from 'expo-router';
@@ -10,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Onboarding() {
   const { user, completeOnboarding } = useAuth();
+  const { colors } = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -65,31 +67,32 @@ export default function Onboarding() {
   };
 
   return (
-    <View className="flex-1 bg-slate-900 justify-center items-center p-6">
-      <View className="bg-slate-800 p-8 rounded-3xl items-center shadow-xl w-full border border-slate-700/30">
-        <View className="bg-blue-500/20 p-5 rounded-full mb-6">
-          <MapPin color="#3b82f6" size={48} />
+    <View style={{ backgroundColor: colors.background }} className="flex-1 justify-center items-center p-6">
+      <View style={{ backgroundColor: colors.card, borderColor: colors.border }} className="p-8 rounded-3xl items-center border w-full">
+        <View style={{ backgroundColor: colors.primary + '15' }} className="p-5 rounded-full mb-6">
+          <MapPin color={colors.primary} size={48} />
         </View>
-        <Text className="text-2xl font-bold text-white text-center mb-4">Radius Notificator</Text>
-        <Text className="text-slate-400 text-center text-base mb-8 leading-6">
+        <Text style={{ color: colors.text }} className="text-2xl font-bold text-center mb-4">Radius Notificator</Text>
+        <Text style={{ color: colors.textMuted }} className="text-center text-sm mb-8 leading-5">
           {"BudgyTrack can remind you to log expenses when you've been away from home for more than 10 minutes."}
           {'\n\n'}
           {"Your location data never leaves your device — notifications are 100% local."}
         </Text>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#3b82f6" />
+          <ActivityIndicator size="large" color={colors.primary} />
         ) : (
           <>
             <TouchableOpacity
-              className="bg-blue-500 w-full py-4 rounded-xl items-center shadow-lg shadow-blue-500/30 mb-3"
+              style={{ backgroundColor: colors.primary }}
+              className="w-full py-4 rounded-xl items-center mb-3"
               onPress={handleSetupLocation}
             >
-              <Text className="text-white font-semibold text-lg">📍 Pin Home & Enable</Text>
+              <Text className="text-white font-bold text-base">📍 Pin Home & Enable</Text>
             </TouchableOpacity>
 
             <TouchableOpacity className="py-3" onPress={handleSkip}>
-              <Text className="text-slate-500 font-medium">Skip for now</Text>
+              <Text style={{ color: colors.textMuted }} className="font-semibold">Skip for now</Text>
             </TouchableOpacity>
           </>
         )}

@@ -42,6 +42,8 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL || 'https://cyuuhazcwvirqhonwzxv.supabase.co' }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_CHKN4Wk6J4xW5UX_AgDiaQ_zUfMgyng' }}
         run: |
+          echo "EXPO_PUBLIC_SUPABASE_URL=${{ secrets.EXPO_PUBLIC_SUPABASE_URL || 'https://cyuuhazcwvirqhonwzxv.supabase.co' }}" > .env
+          echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_CHKN4Wk6J4xW5UX_AgDiaQ_zUfMgyng' }}" >> .env
           npx expo prebuild --platform android
           cd android
           chmod +x gradlew

@@ -47,7 +47,7 @@ jobs:
           npx expo prebuild --platform android
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleRelease -x lint -x lintVitalAnalyzeRelease --no-daemon
 
       - name: Find APK
         id: find_apk

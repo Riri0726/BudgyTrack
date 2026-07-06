@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
-import { Sparkles, Wallet, ArrowUpRight, ArrowDownRight, Landmark, Smartphone } from 'lucide-react-native';
-import { useState, useEffect } from 'react';
+import { Sparkles, Wallet, Landmark, Smartphone } from 'lucide-react-native';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { useRouter } from 'expo-router';
@@ -26,13 +26,7 @@ export default function Dashboard() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchDashboardData();
-    }
-  }, [user]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       if (!user) return;
@@ -67,7 +61,14 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchDashboardData();
+    }
+  }, [user, fetchDashboardData]);
 
   // Calculations
   const totalBalance = accounts.reduce((sum, acc) => sum + parseFloat(acc.balance || 0), 0);
@@ -115,15 +116,8 @@ export default function Dashboard() {
     alertColor = '#f59e0b';
   }
 
-  // Get Top Expenses
-  const topExpenses = [...transactions]
-    .filter(t => t.type === 'expense')
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 4);
-
   // Group weekly data dynamically
   const getWeeklyChartData = () => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const data = [0, 0, 0, 0, 0, 0, 0];
     
     const now = new Date();

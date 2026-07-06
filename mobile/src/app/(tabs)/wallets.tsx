@@ -1,6 +1,6 @@
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { useState, useEffect } from 'react';
-import { ArrowDownRight, ArrowUpRight, Plus, X, Trash2, Landmark, Wallet, Smartphone } from 'lucide-react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { ArrowDownRight, ArrowUpRight, Plus, X, Landmark, Wallet, Smartphone } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 
@@ -26,11 +26,7 @@ export default function Wallets() {
     { value: 'other', label: 'Other' },
   ];
 
-  useEffect(() => {
-    if (user) fetchWalletData();
-  }, [user]);
-
-  const fetchWalletData = async () => {
+  const fetchWalletData = useCallback(async () => {
     setLoading(true);
     try {
       if (!user) return;
@@ -48,7 +44,12 @@ export default function Wallets() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (user) fetchWalletData();
+  }, [user, fetchWalletData]);
 
   const handleAddWallet = async () => {
     if (!name || !type) return;

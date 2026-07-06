@@ -1,5 +1,5 @@
 import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, ScrollView, ActivityIndicator } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ArrowDownRight, ArrowUpRight, Plus, X, RefreshCw, Check } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -24,13 +24,7 @@ export default function Transactions() {
   const [status, setStatus] = useState<'confirmed' | 'planned'>('confirmed');
   const [isRecurring, setIsRecurring] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       if (!user) return;
@@ -66,7 +60,16 @@ export default function Transactions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchData();
+    }
+  }, [user, fetchData]);
+
+
 
   const handleTypeChange = (newType: 'income' | 'expense') => {
     setType(newType);

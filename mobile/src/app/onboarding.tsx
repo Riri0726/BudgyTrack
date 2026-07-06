@@ -72,9 +72,9 @@ export default function Onboarding() {
         </View>
         <Text className="text-2xl font-bold text-white text-center mb-4">Radius Notificator</Text>
         <Text className="text-slate-400 text-center text-base mb-8 leading-6">
-          BudgyTrack can remind you to log expenses when you've been away from home for more than 10 minutes.
+          {"BudgyTrack can remind you to log expenses when you've been away from home for more than 10 minutes."}
           {'\n\n'}
-          Your location data never leaves your device — notifications are 100% local.
+          {"Your location data never leaves your device — notifications are 100% local."}
         </Text>
 
         {loading ? (

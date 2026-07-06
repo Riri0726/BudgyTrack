@@ -10,33 +10,6 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
 
-  useEffect(() => {
-    if (loading) return;
-
-    const inAuthGroup = segments[0] === 'login';
-    const inOnboarding = segments[0] === 'onboarding';
-
-    if (!user && !inAuthGroup) {
-      router.replace('/login');
-    } else if (user && inAuthGroup) {
-      // Check if we need onboarding (no wallets set up)
-      if (hasOnboarded === false) {
-        router.replace('/onboarding');
-      } else {
-        router.replace('/');
-      }
-    } else if (user && hasOnboarded === false && !inOnboarding) {
-      router.replace('/onboarding');
-    }
-  }, [user, loading, hasOnboarded, segments]);
-
-  // Boot geofencing if home location is cached
-  useEffect(() => {
-    if (user) {
-      bootGeofencing();
-    }
-  }, [user]);
-
   const bootGeofencing = async () => {
     try {
       const lat = await AsyncStorage.getItem('home_lat');
@@ -48,6 +21,33 @@ function RootLayoutNav() {
       // Silently fail — location permissions might not be granted yet
     }
   };
+
+  useEffect(() => {
+    if (loading) return;
+
+    const inAuthGroup = (segments[0] as any) === 'login';
+    const inOnboarding = (segments[0] as any) === 'onboarding';
+
+    if (!user && !inAuthGroup) {
+      router.replace('/login' as any);
+    } else if (user && inAuthGroup) {
+      // Check if we need onboarding (no wallets set up)
+      if (hasOnboarded === false) {
+        router.replace('/onboarding' as any);
+      } else {
+        router.replace('/' as any);
+      }
+    } else if (user && hasOnboarded === false && !inOnboarding) {
+      router.replace('/onboarding' as any);
+    }
+  }, [user, loading, hasOnboarded, segments, router]);
+
+  // Boot geofencing if home location is cached
+  useEffect(() => {
+    if (user) {
+      bootGeofencing();
+    }
+  }, [user]);
 
   if (loading) {
     return (

@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Switch } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User, MapPin, Plus, Trash2, Tag } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -29,14 +29,7 @@ export default function Settings() {
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-      fetchCategories();
-    }
-  }, [user]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       if (!user) return;
       const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
@@ -56,9 +49,9 @@ export default function Settings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       if (!user) return;
       const { data, error } = await supabase.from('categories').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
@@ -67,7 +60,15 @@ export default function Settings() {
     } catch (err: any) {
       console.error(err.message);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchProfile();
+      fetchCategories();
+    }
+  }, [user, fetchProfile, fetchCategories]);
 
   const handleUpdateProfile = async () => {
     setProfileLoading(true);
@@ -270,7 +271,7 @@ export default function Settings() {
           ))}
         </ScrollView>
         <Text className="text-slate-500 text-[10px] mt-1">
-          You'll be notified after being {radiusMeters >= 1000 ? `${radiusMeters / 1000}km` : `${radiusMeters}m`} from home for 10+ minutes.
+          {`You'll be notified after being ${radiusMeters >= 1000 ? `${radiusMeters / 1000}km` : `${radiusMeters}m`} from home for 10+ minutes.`}
         </Text>
       </View>
 

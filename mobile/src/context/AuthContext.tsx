@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const ensureUserProfile = async (userId: string, email?: string) => {
     try {
       // 1. Profile Check
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .select('id')
         .eq('id', userId)

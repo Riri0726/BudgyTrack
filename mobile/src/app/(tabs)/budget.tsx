@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 
@@ -10,11 +10,7 @@ export default function Budget() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newBudgetVal, setNewBudgetVal] = useState('');
 
-  useEffect(() => {
-    if (user) fetchBudgetDetails();
-  }, [user]);
-
-  const fetchBudgetDetails = async () => {
+  const fetchBudgetDetails = useCallback(async () => {
     setLoading(true);
     try {
       if (!user) return;
@@ -36,7 +32,14 @@ export default function Budget() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchBudgetDetails();
+    }
+  }, [user, fetchBudgetDetails]);
 
   const handleSave = async (id: string) => {
     const val = parseFloat(newBudgetVal) || 0;

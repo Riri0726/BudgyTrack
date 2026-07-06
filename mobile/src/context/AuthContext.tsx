@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
+import * as Linking from 'expo-linking';
 
 type AuthContextType = {
   user: User | null;
@@ -90,11 +91,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = (email: string, password: string) => supabase.auth.signInWithPassword({ email, password });
   
   const signUp = async (email: string, password: string, metadata: any) => {
+    // Generate the correct deep link for Expo Go or standalone app
+    const redirectUrl = Linking.createURL('/');
+    
     const response = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: metadata
+        data: metadata,
+        emailRedirectTo: redirectUrl,
       }
     });
     return response;

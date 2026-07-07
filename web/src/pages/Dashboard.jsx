@@ -30,7 +30,6 @@ export default function Dashboard() {
         .select('*')
         .eq('user_id', user.id);
       if (accErr) throw accErr;
-      setAccounts(accs || []);
 
       // 2. Fetch Categories (to sum budget limits)
       const { data: cats, error: catErr } = await supabase
@@ -39,7 +38,6 @@ export default function Dashboard() {
         .eq('user_id', user.id);
       if (catErr) throw catErr;
       setCategories(cats || []);
-
 
       // 4. Fetch Transactions
       const { data: txs, error: txErr } = await supabase
@@ -51,6 +49,26 @@ export default function Dashboard() {
         .eq('user_id', user.id);
       if (txErr) throw txErr;
       setTransactions(txs || []);
+
+      // 5. Verify & Sync Account Balances
+      const updatedAccounts = await Promise.all((accs || []).map(async (acc) => {
+        const wTxs = (txs || []).filter(t => t.account_id === acc.id && t.status === 'confirmed');
+        const spent = wTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+        const income = wTxs.filter(t => t.type === 'income').reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+        const calculatedBalance = income - spent;
+
+        if (parseFloat(acc.balance) !== calculatedBalance) {
+          // Update in Supabase quiet correction
+          await supabase
+            .from('accounts')
+            .update({ balance: calculatedBalance })
+            .eq('id', acc.id);
+          return { ...acc, balance: calculatedBalance };
+        }
+        return acc;
+      }));
+
+      setAccounts(updatedAccounts);
 
     } catch (err) {
       console.error('Error loading dashboard stats:', err.message);

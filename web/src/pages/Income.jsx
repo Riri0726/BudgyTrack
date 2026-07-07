@@ -126,6 +126,23 @@ export default function Income() {
         }]);
 
       if (error) throw error;
+
+      if (status === 'confirmed') {
+        const acc = accounts.find(a => a.id === accountId);
+        if (acc) {
+          const currentBalance = parseFloat(acc.balance || 0);
+          const amt = parseFloat(amount);
+          const newBalance = currentBalance + amt;
+
+          const { error: accUpdateErr } = await supabase
+            .from('accounts')
+            .update({ balance: newBalance })
+            .eq('id', accountId);
+          if (accUpdateErr) throw accUpdateErr;
+
+          setAccounts(accounts.map(a => a.id === accountId ? { ...a, balance: newBalance } : a));
+        }
+      }
       
       setIsModalOpen(false);
       setTitle('');
@@ -141,12 +158,31 @@ export default function Income() {
 
   const handleConfirmStatus = async (id) => {
     try {
+      const tx = incomes.find(t => t.id === id);
       const { error } = await supabase
         .from('transactions')
         .update({ status: 'confirmed' })
         .eq('id', id);
 
       if (error) throw error;
+
+      if (tx) {
+        const acc = accounts.find(a => a.id === tx.account_id);
+        if (acc) {
+          const currentBalance = parseFloat(acc.balance || 0);
+          const amt = parseFloat(tx.amount);
+          const newBalance = currentBalance + amt;
+
+          const { error: accUpdateErr } = await supabase
+            .from('accounts')
+            .update({ balance: newBalance })
+            .eq('id', tx.account_id);
+          if (accUpdateErr) throw accUpdateErr;
+
+          setAccounts(accounts.map(a => a.id === tx.account_id ? { ...a, balance: newBalance } : a));
+        }
+      }
+
       await fetchIncomes();
     } catch (err) {
       alert(err.message);
@@ -155,12 +191,31 @@ export default function Income() {
 
   const handleDelete = async (id) => {
     try {
+      const tx = incomes.find(t => t.id === id);
       const { error } = await supabase
         .from('transactions')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
+
+      if (tx && tx.status === 'confirmed') {
+        const acc = accounts.find(a => a.id === tx.account_id);
+        if (acc) {
+          const currentBalance = parseFloat(acc.balance || 0);
+          const amt = parseFloat(tx.amount);
+          const newBalance = currentBalance - amt;
+
+          const { error: accUpdateErr } = await supabase
+            .from('accounts')
+            .update({ balance: newBalance })
+            .eq('id', tx.account_id);
+          if (accUpdateErr) throw accUpdateErr;
+
+          setAccounts(accounts.map(a => a.id === tx.account_id ? { ...a, balance: newBalance } : a));
+        }
+      }
+
       setIncomes(incomes.filter((inc) => inc.id !== id));
     } catch (err) {
       alert(err.message);
